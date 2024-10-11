@@ -4,51 +4,51 @@ namespace App\Controller;
 
 use App\Entity\User;
 use App\Repository\UserRepository;
-use Doctrine\ORM\EntityManager;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
-use Symfony\Component\HttpFoundation\Response;
-use Symfony\Component\Routing\Attribute\Route;
+use Symfony\Component\HttpFoundation\JsonResponse;
+use Symfony\Component\Routing\Annotation\Route;
 
 class UserController extends AbstractController
 {
-    #[Route('/admin/user', name: 'app_user')]
-    public function index(UserRepository $userRepository): Response
+    #[Route('/api/users', name: 'api_users', methods: ['GET'])]
+    public function index(UserRepository $userRepository): JsonResponse
     {
-        return $this->render('user/index.html.twig', [
-           'users' =>$userRepository->findAll() ,
-        ]);
+        $users = $userRepository->findAll();
+        $data = [];
+
+        foreach ($users as $user) {
+            $data[] = [
+                'id' => $user->getId(),
+                'email' => $user->getEmail(),
+                'roles' => $user->getRoles(),
+            ];
+        }
+
+        return new JsonResponse($data);
     }
-    #[Route('/admin/user/{id}/to/editor', name: 'app_user_to_editor')]
-    public function changeRole(EntityManagerInterface $entityManager, User $user): Response
+
+    #[Route('/api/user/{id}/to/editor', name: 'api_user_to_editor', methods: ['PATCH'])]
+    public function changeRole(EntityManagerInterface $entityManager, User $user): JsonResponse
     {
-        $user->setRoles(["ROLE_EDITOR","ROLE_USER"]);
+        $user->setRoles(["ROLE_EDITOR", "ROLE_USER"]);
         $entityManager->flush();
 
-        $this->addFlash(type:'success',message:'le role éditeur a été ajouté à votre utilisateur');
-
-        return $this->redirectToRoute(route:'app_user');
+        return new JsonResponse(['success' => true, 'message' => 'Le rôle éditeur a été ajouté']);
     }
-    #[Route('/admin/user/{id}/remove/editor/role', name: 'app_user_remove_editor_role')]
-    public function editorRoleRemove(EntityManagerInterface $entityManager, User $user): Response
-    {
-        $user->setRoles([]);
-        $entityManager->flush();
 
-        $this->addFlash(type:'success',message:'le role éditeur a été retiré à votre utilisateur');
-
-        return $this->redirectToRoute(route:'app_user');
-    }
-    #[Route('/admin/user/{id}/remove/', name: 'app_user_remove')]
-    public function userRemove(EntityManagerInterface $entityManager, $id, UserRepository $userRepository): Response
+    #[Route('/api/user/{id}/remove', name: 'api_user_remove', methods: ['DELETE'])]
+    public function userRemove(EntityManagerInterface $entityManager, $id, UserRepository $userRepository): JsonResponse
     {
         $userFind = $userRepository->find($id);
-        
+
+        if (!$userFind) {
+            return new JsonResponse(['error' => 'Utilisateur non trouvé'], 404);
+        }
+
         $entityManager->remove($userFind);
         $entityManager->flush();
 
-        $this->addFlash(type:'danger',message:'Votre utilisateur a été supprimé');
-
-        return $this->redirectToRoute(route:'app_user');
+        return new JsonResponse(['success' => true, 'message' => 'Utilisateur supprimé']);
     }
 }
