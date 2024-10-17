@@ -21,7 +21,7 @@ use Symfony\Component\Routing\Attribute\Route;
 use Symfony\Component\String\Slugger\SluggerInterface;
 
 
-#[Route('/product')]
+#[Route('/products')]
 class ProductController extends AbstractController
 {
     #[Route('', name: 'app_home', methods: ['GET'])]
@@ -29,13 +29,13 @@ class ProductController extends AbstractController
     {
         // Fetch products sorted by ID in descending order
         $data = $productRepository->findBy([], ['id' => 'DESC']);
-    
         // Paginate the products, 6 per page
         $products = $paginator->paginate(
             $data,
             $request->query->getInt('page', 2),
             6
         );
+    
     
         $productArray = [];
         foreach ($products as $product) {
@@ -67,10 +67,36 @@ class ProductController extends AbstractController
             ],
         ]);
     }
+    #[Route('/filtered', name: 'app_product_filtered', methods: ['GET'])]
+    public function getFilteredProducts(Request $request, ProductRepository $productRepository)
+    {
+        $idsStr = $request->query->get('ids'); // Un tableau d'IDs envoyé dans la requête
+        $ids = $this->convertComaSeparatedToArray($idsStr);
+        
+        if(empty($ids)){
+            return $this->json([]);
+        }
+
+        // dd($ids);
+        $products = $productRepository->findBy(['id' => $ids]);
+
+        // dd($products);
+        
+        return $this->json($products, context: ['groups' => 'product_simple']);
+    }
     
+
+    private function convertComaSeparatedToArray(string $ids)
+    {
+        $separator = ',';
+        return explode($separator, $ids);
+    }
+
+
     #[Route('/{id}', name: 'app_home_product_show', methods: ['GET'])]
     public function getProductDetail(Product $product, ProductRepository $productRepository, CategoryRepository $categoryRepository): JsonResponse
     {
+        
         // Récupérer les 5 derniers produits
         $lastProducts = $productRepository->findBy([], ['id' => 'DESC'], limit: 5);
     
@@ -120,49 +146,52 @@ class ProductController extends AbstractController
     //     ]);
     // }
 
-    #[Route('editor/new', name: 'app_product_new', methods: ['GET', 'POST'])]
-    public function new(Request $request, EntityManagerInterface $entityManager, SluggerInterface $slugger): Response
+
+    #[Route('/editor/new', name: 'app_product_new', methods: ['POST'])]
+    public function new()
     {
-        $product = new Product();
-        $form = $this->createForm(ProductType::class, $product);
-        $form->handleRequest($request);
+        return $this->json([]);
 
-        if ($form->isSubmitted() && $form->isValid()) {
-            $image = $form->get('image')->getdata();
+    //     $product = new Product();
+    //     $form = $this->createForm(ProductType::class, $product);
+    //     $form->handleRequest($request);
 
-            if ($image){
-                $originalName = pathinfo($image->getClientOriginalName(), PATHINFO_FILENAME);
-                $safeFileName = $slugger->slug($originalName);
-                $newFileName = $safeFileName.'-'.uniqid().'.'.$image->guessExtension();   
+    //     if ($form->isSubmitted() && $form->isValid()) {
+    //         $image = $form->get('image')->getdata();
+
+    //         if ($image){
+    //             $originalName = pathinfo($image->getClientOriginalName(), PATHINFO_FILENAME);
+    //             $safeFileName = $slugger->slug($originalName);
+    //             $newFileName = $safeFileName.'-'.uniqid().'.'.$image->guessExtension();   
             
-                try{
-                    $image->move(
-                        $this->getParameter(name:'image_dir'),
-                        $newFileName
-                    );
-                }catch (FileException $exception){}
+    //             try{
+    //                 $image->move(
+    //                     $this->getParameter(name:'image_dir'),
+    //                     $newFileName
+    //                 );
+    //             }catch (FileException $exception){}
 
-                $product->setImage($newFileName);
-            }
-            $entityManager->persist($product);
-            $entityManager->flush();
+    //             $product->setImage($newFileName);
+    //         }
+    //         $entityManager->persist($product);
+    //         $entityManager->flush();
 
-            $stockHistory = new AddProductHistory();
-            $stockHistory->setQte($product->getStock());
-            $stockHistory->setProduct($product);
-            $stockHistory->setCreatedAt(new \DateTimeImmutable());
-            $entityManager->persist($stockHistory);
-            $entityManager->flush();
+    //         $stockHistory = new AddProductHistory();
+    //         $stockHistory->setQte($product->getStock());
+    //         $stockHistory->setProduct($product);
+    //         $stockHistory->setCreatedAt(new \DateTimeImmutable());
+    //         $entityManager->persist($stockHistory);
+    //         $entityManager->flush();
 
-            $this->addFlash(type: 'success', message:'Votre produit a été ajouté');
-            return $this->redirectToRoute('app_product_index', [], Response::HTTP_SEE_OTHER);
-        }
+    //         $this->addFlash(type: 'success', message:'Votre produit a été ajouté');
+    //         return $this->redirectToRoute('app_product_index', [], Response::HTTP_SEE_OTHER);
+    //     }
 
-        return $this->render('product/new.html.twig', [
-            'product' => $product,
-            'form' => $form,
-        ]);
-    }
+    //     return $this->render('product/new.html.twig', [
+    //         'product' => $product,
+    //         'form' => $form,
+    //     ]);
+    // }
 
     // #[Route('/{id}', name: 'app_product_show', methods: ['GET'])]
     // public function show(Product $product): Response
@@ -170,98 +199,104 @@ class ProductController extends AbstractController
     //     return $this->render('product/show.html.twig', [
     //         'product' => $product,
     //     ]);
-    // }
+    }
 
-    #[Route('/{id}/edit', name: 'app_product_edit', methods: ['GET', 'POST'])]
-    public function edit(Request $request, Product $product, EntityManagerInterface $entityManager, SluggerInterface $slugger): Response
+    #[Route('/{id}/edit', name: 'app_product_edit', methods: ['UPDATE', 'POST'])]
+    public function edit()
     {
-        $form = $this->createForm(ProductUpdateType::class, $product);
-        $form->handleRequest($request);
+        return $this->json([]);
 
-        if ($form->isSubmitted() && $form->isValid()) {
+    //     $form = $this->createForm(ProductUpdateType::class, $product);
+    //     $form->handleRequest($request);
 
-            $image = $form->get('image')->getdata();
+    //     if ($form->isSubmitted() && $form->isValid()) {
 
-            if ($image){
-                $originalName = pathinfo($image->getClientOriginalName(), PATHINFO_FILENAME);
-                $safeFileName = $slugger->slug($originalName);
-                $newFileName = $safeFileName.'-'.uniqid().'.'.$image->guessExtension();   
+    //         $image = $form->get('image')->getdata();
+
+    //         if ($image){
+    //             $originalName = pathinfo($image->getClientOriginalName(), PATHINFO_FILENAME);
+    //             $safeFileName = $slugger->slug($originalName);
+    //             $newFileName = $safeFileName.'-'.uniqid().'.'.$image->guessExtension();   
             
-                try{
-                    $image->move(
-                        $this->getParameter(name:'image_dir'),
-                        $newFileName
-                    );
-                }catch (FileException $exception){}
+    //             try{
+    //                 $image->move(
+    //                     $this->getParameter(name:'image_dir'),
+    //                     $newFileName
+    //                 );
+    //             }catch (FileException $exception){}
 
-                $product->setImage($newFileName);
-            }
+    //             $product->setImage($newFileName);
+    //         }
 
-            $entityManager->flush();
+    //         $entityManager->flush();
 
-            $this->addFlash(type: 'success', message:'Votre produit a été modifié');
-            return $this->redirectToRoute('app_product_index', [], Response::HTTP_SEE_OTHER);
-        }
+    //         $this->addFlash(type: 'success', message:'Votre produit a été modifié');
+    //         return $this->redirectToRoute('app_product_index', [], Response::HTTP_SEE_OTHER);
+    //     }
 
-        return $this->render('product/edit.html.twig', [
-            'product' => $product,
-            'form' => $form,
-        ]);
+    //     return $this->render('product/edit.html.twig', [
+    //         'product' => $product,
+    //         'form' => $form,
+    //     ]);
     }
 
     #[Route('/{id}', name: 'app_product_delete', methods: ['DELETE'])]
-    public function delete(Request $request, Product $product, EntityManagerInterface $entityManager): Response
+    public function delete()
     {
-        if ($this->isCsrfTokenValid('delete'.$product->getId(), $request->getPayload()->getString('_token'))) {
-            $entityManager->remove($product);
-            $this->addFlash(type: 'danger', message:'Votre produit a été supprimé');
+        return $this->json([]);
 
-            $entityManager->flush();
-        }
-        return $this->redirectToRoute('app_product_index', [], Response::HTTP_SEE_OTHER);
+    //     if ($this->isCsrfTokenValid('delete'.$product->getId(), $request->getPayload()->getString('_token'))) {
+    //         $entityManager->remove($product);
+    //         $this->addFlash(type: 'danger', message:'Votre produit a été supprimé');
+
+    //         $entityManager->flush();
+    //     }
+    //     return $this->redirectToRoute('app_product_index', [], Response::HTTP_SEE_OTHER);
     }
-    #[Route('/add/product/{id}/stock', name: 'app_product_stock_add', methods: ['POST','GET'])]
-    public function addStock($id, EntityManagerInterface $entityManager, Request $request, ProductRepository $productRepository):Response
+    #[Route('/add/product/{id}/stock', name: 'app_product_stock_add', methods: ['POST'])]
+    public function addStock($id)
     {
-        $addStock = new AddProductHistory();
-        $form = $this->createForm(AddProductHistoryType::class,$addStock);
-        $form->handleRequest($request);
+        return $this->json([]);
 
-        $product = $productRepository->find($id);
+    //     $addStock = new AddProductHistory();
+    //     $form = $this->createForm(AddProductHistoryType::class,$addStock);
+    //     $form->handleRequest($request);
 
-        if ($form->isSubmitted() && $form->isValid()){
+    //     $product = $productRepository->find($id);
 
-            if ($addStock->getQte()>0){
-                $newQte = $product->getStock() + $addStock->getQte();
-                $product->setStock($newQte);
+    //     if ($form->isSubmitted() && $form->isValid()){
+
+    //         if ($addStock->getQte()>0){
+    //             $newQte = $product->getStock() + $addStock->getQte();
+    //             $product->setStock($newQte);
                 
-                $addStock->setCreatedAt(new \DateTimeImmutable());
-                $addStock->setProduct($product);
-                $entityManager->persist($addStock);
-                $entityManager->flush();
+    //             $addStock->setCreatedAt(new \DateTimeImmutable());
+    //             $addStock->setProduct($product);
+    //             $entityManager->persist($addStock);
+    //             $entityManager->flush();
 
-                $this->addFlash("success", message:"Le stock de votre produit a été modifié");
-                return $this->redirectToRoute('app_product_index');
-            } else {
-                $this->addFlash("danger","Le stock ne doit pas être inférieur à 1");
-                return $this->redirectToRoute("app_product_stock_add",['id'=>$product->getId()]);
-            }
-        }
+    //             $this->addFlash("success", message:"Le stock de votre produit a été modifié");
+    //             return $this->redirectToRoute('app_product_index');
+    //         } else {
+    //             $this->addFlash("danger","Le stock ne doit pas être inférieur à 1");
+    //             return $this->redirectToRoute("app_product_stock_add",['id'=>$product->getId()]);
+    //         }
+    //     }
 
-        return $this->render('product/addStock.html.twig',
-            ['form' => $form->createView(),
-            'product'=>$product
-            ]
-        );
+    //     return $this->render('product/addStock.html.twig',
+    //         ['form' => $form->createView(),
+    //         'product'=>$product
+    //         ]
+    //     );
     }
-    #[Route('/add/product/{id}/stock/history', name: 'app_product_stock_add_history', methods: ['GET'])]
-    public function productAddHistory($id, ProductRepository $productRepository, AddProductHistoryRepository $addProductHistoryRepository):Response
-    {
-        $product = $productRepository->find($id);
-        $productAddedHistory = $addProductHistoryRepository->findBy(['product'=>$product],['id'=>'DESC']);
+    // #[Route('/add/product/{id}/stock/history', name: 'app_product_stock_add_history', methods: ['GET'])]
+    // public function productAddHistory($id, ProductRepository $productRepository, AddProductHistoryRepository $addProductHistoryRepository):Response
+    // {
+    //     $product = $productRepository->find($id);
+    //     $productAddedHistory = $addProductHistoryRepository->findBy(['product'=>$product],['id'=>'DESC']);
 
-        return $this->render('product/addedStockHistoryShow.html.twig', [
-            'productsAdded'=>$productAddedHistory
-        ]);
-    }
+    //     return $this->render('product/addedStockHistoryShow.html.twig', [
+    //         'productsAdded'=>$productAddedHistory
+    //     ]);
+    // }
 }

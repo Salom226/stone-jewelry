@@ -14,66 +14,76 @@ use Symfony\Component\Routing\Attribute\Route;
 
 class CategoryController extends AbstractController
 {
-    #[Route('/admin/category', name: 'app_category')]
-    public function index(CategoryRepository $categoryRepository): Response
+    #[Route('/admin/category', name: 'app_category', methods:['GET'])]
+    public function getCategory()
     {
-        $categories = $categoryRepository->findAll();
-
-        return $this->render('category/index.html.twig', [
-            'categories'=>$categories
-        ]);
+            return $this->json([]);
     }
+        // $categories = $categoryRepository->findAll();
+
+        // $this->denyAccessUnlessGranted('ROLE_ADMIN');
+
+        // return $this->render('category/index.html.twig', [
+        //     'categories'=>$categories
+        // ]);
+    // }
     
-    #[Route('/admin/category/new', name: 'app_category_new')]
-    public function addCategory(EntityManagerInterface $entityManager, Request $request): Response
+    #[Route('/admin/category/new', name: 'app_category_new', methods:['POST'])]
+    public function addCategory()
     {
-        $category = new Category();
+        return $this->json([]);
+        // $category = new Category();
 
-        $form = $this->createForm(CategoryFormType::class, $category);
-        $form->handleRequest($request);
+        // $form = $this->createForm(CategoryFormType::class, $category);
+        // $form->handleRequest($request);
 
-        if ($form->isSubmitted() && $form->isValid()) {
+        // if ($form->isSubmitted() && $form->isValid()) {
 
-            $entityManager->persist($category);
-            $entityManager->flush();
+        //     $entityManager->persist($category);
+        //     $entityManager->flush();
 
-            $this->addFlash(type: 'success',message: "votre catégorie à été ajouté");
-            return $this->redirectToRoute(route:'app_category');
+        //     $this->addFlash(type: 'success',message: "votre catégorie à été ajouté");
+        //     return $this->redirectToRoute(route:'app_category');
 
-        }
+        // }
     
-        return $this->render('category/new.html.twig', [
-            'form' => $form->createView(),
-        ]);
+        // return $this->render('category/new.html.twig', [
+        //     'form' => $form->createView(),
+        // ]);
     }
-    #[Route('/admin/category/{id}/update', name: 'app_category_update')]
-    public function update(Category $category, EntityManagerInterface $entityManager, Request $request): Response
+    #[Route('/admin/category/{id}/update', name: 'app_category_update', methods:['UPDATE'])]
+    public function update()
     {
-        $form = $this->createForm(CategoryFormType::class, $category);
-        $form->handleRequest($request);
+        return $this->json([]);
 
-        if ($form->isSubmitted() && $form->isValid()){
-            $entityManager->flush();
+        // $form = $this->createForm(CategoryFormType::class, $category);
+        // $form->handleRequest($request);
 
-            $this->addFlash(type: 'success',message: "votre catégorie à été modifié");
+        // if ($form->isSubmitted() && $form->isValid()){
+        //     $entityManager->flush();
 
-            return $this->redirectToRoute(route:'app_category');
+        //     $this->addFlash(type: 'success',message: "votre catégorie à été modifié");
 
-        }
+        //     return $this->redirectToRoute(route:'app_category');
 
-        return $this->render('category/update.html.twig', [
-            'form' => $form->createView(),
-        ]);
+        // }
+
+        // return $this->render('category/update.html.twig', [
+        //     'form' => $form->createView(),
+        // ]);
     }
-    #[Route('/admin/category/{id}/delete', name: 'app_category_delete')]
-    public function delete(Category $category, EntityManagerInterface $entityManager): Response
+    #[Route('/admin/category/{id}/delete', name: 'app_category_delete', methods:['DELETE'])]
+    public function categoryDelete()
     {
-        $entityManager->remove($category);
-        $entityManager->flush(); 
+        return $this->json([]);
 
-        $this->addFlash(type: 'success',message: "votre catégorie à été supprimé");
 
-        return $this->redirectToRoute(route:'app_category');
+        // $entityManager->remove($category);
+        // $entityManager->flush(); 
+
+        // $this->addFlash(type: 'success',message: "votre catégorie à été supprimé");
+
+        // return $this->redirectToRoute(route:'app_category');
     }
 }
 

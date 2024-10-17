@@ -7,6 +7,7 @@ use App\Repository\UserRepository;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
+use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\Routing\Annotation\Route;
 
 class UserController extends AbstractController
@@ -26,6 +27,14 @@ class UserController extends AbstractController
         }
 
         return new JsonResponse($data);
+    }    
+    
+    
+    #[Route('/dddd', name: 'api_users', methods: ['POST'], priority: 10)]
+    public function dddd(Request $request): JsonResponse
+    {
+        dd($request->getContent());
+        return new JsonResponse(['test' => 'test']);
     }
 
     #[Route('/api/user/{id}/to/editor', name: 'api_user_to_editor', methods: ['PATCH'])]
