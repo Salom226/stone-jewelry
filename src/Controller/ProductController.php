@@ -2,6 +2,7 @@
 
 namespace App\Controller;
 
+use App\Dto\CreateProductDto;
 use App\Entity\AddProductHistory;
 use App\Entity\Product;
 use App\Form\AddProductHistoryType;
@@ -17,27 +18,42 @@ use Symfony\Component\HttpFoundation\File\Exception\FileException;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
+use Symfony\Component\HttpKernel\Attribute\MapRequestPayload;
 use Symfony\Component\Routing\Attribute\Route;
+use Symfony\Component\Security\Http\Attribute\IsGranted;
+use Symfony\Component\Serializer\SerializerInterface;
 use Symfony\Component\String\Slugger\SluggerInterface;
 
 
-#[Route('/products')]
+#[Route('/api/products')]
 class ProductController extends AbstractController
 {
+
+    public function __construct(
+        private ProductRepository $productRepository, 
+        private CategoryRepository $categoryRepository, 
+        private EntityManagerInterface $entityManager,
+        private SerializerInterface $serializer
+    )
+    {
+    }
+
     #[Route('', name: 'app_home', methods: ['GET'])]
-    public function getAllProducts(ProductRepository $productRepository, CategoryRepository $categoryRepository, Request $request, PaginatorInterface $paginator): JsonResponse
+    public function getAllProducts(Request $request, PaginatorInterface $paginator): JsonResponse
     {
         // Fetch products sorted by ID in descending order
-        $data = $productRepository->findBy([], ['id' => 'DESC']);
+        $products = $this->productRepository->findBy([], ['id' => 'DESC']);
         // Paginate the products, 6 per page
-        $products = $paginator->paginate(
-            $data,
-            $request->query->getInt('page', 2),
-            6
+        $paginatedProducts = $paginator->paginate(
+            $products,
+            $request->query->getInt('page', 1),
+            limit: $request->query->getInt('limit', 10)
         );
+
+        // dd($products);
     
     
-        $productArray = [];
+        // $productArray = [];
         foreach ($products as $product) {
             $productArray[] = [
                 'image' => $product->getImage(),
@@ -48,25 +64,27 @@ class ProductController extends AbstractController
             ];
         }
 
-        $categoryArray = [];
-        $categories = $categoryRepository->findAll();
-        foreach ($categories as $category) {
-            $categoryArray[] = [
-                'id' => $category->getId(),
-                'name' => $category->getName(),
-            ];
-        }
-            return new JsonResponse([
-            'products' => $productArray,
-            'categories' => $categoryArray,
+        // $categoryArray = [];
+        // $categories = $this->categoryRepository->findAll();
+        // foreach ($categories as $category) {
+        //     $categoryArray[] = [
+        //         'id' => $category->getId(),
+        //         'name' => $category->getName(),
+        //     ];
+        // }
+        return new JsonResponse([
+            'products' => $this->serializer->normalize($productArray, 'json'),
+            // 'categories' => $categoryArray,
             'pagination' => [
                 'current_page' => $request->query->getInt('page', 1),
-                'total_items' => $products->getTotalItemCount(),
-                'items_per_page' => $products->getItemNumberPerPage(),
-                'total_pages' => ceil($products->getTotalItemCount() / 6),
+                'total_items' => $paginatedProducts->getTotalItemCount(),
+                'items_per_page' => $paginatedProducts->getItemNumberPerPage(),
+                'total_pages' => ceil($paginatedProducts->getTotalItemCount() / 6),
             ],
         ]);
     }
+
+
     #[Route('/filtered', name: 'app_product_filtered', methods: ['GET'])]
     public function getFilteredProducts(Request $request, ProductRepository $productRepository)
     {
@@ -146,12 +164,25 @@ class ProductController extends AbstractController
     //     ]);
     // }
 
-
-    #[Route('/editor/new', name: 'app_product_new', methods: ['POST'])]
-    public function new()
+    #[IsGranted('ROLE_ADMIN')]
+    #[Route('', name: 'app_product_new', methods: ['POST'])]
+    public function newProduct(
+        #[MapRequestPayload()] CreateProductDto $dto
+    )
     {
-        return $this->json([]);
+        $product = new Product();
+        $product->setName($dto->name);
+        $product->setDescription($dto->description);
+        $product->setPrice($dto->price);
+        $product->setImage($dto->image);
+        $product->setStock($dto->stock);
 
+        $this->entityManager->persist($product);
+        $this->entityManager->flush();
+
+        
+        return $this->json($product, status: Response::HTTP_CREATED, context: ['groups' => 'product_simple']);
+    }
     //     $product = new Product();
     //     $form = $this->createForm(ProductType::class, $product);
     //     $form->handleRequest($request);
@@ -199,59 +230,30 @@ class ProductController extends AbstractController
     //     return $this->render('product/show.html.twig', [
     //         'product' => $product,
     //     ]);
-    }
+    // }
 
-    #[Route('/{id}/edit', name: 'app_product_edit', methods: ['UPDATE', 'POST'])]
-    public function edit()
+    #[Route('/{id}', name: 'app_product_edit', methods: ['PUT'])]
+    public function edit(Product $product, #[MapRequestPayload()] CreateProductDto $dto): JsonResponse
     {
-        return $this->json([]);
+        $product->setName($dto->name);
+        $product->setDescription($dto->description);
+        $product->setPrice($dto->price);
+        $product->setImage($dto->image);
+        $product->setStock($dto->stock);
 
-    //     $form = $this->createForm(ProductUpdateType::class, $product);
-    //     $form->handleRequest($request);
+        $this->entityManager->persist($product);
+        $this->entityManager->flush();
 
-    //     if ($form->isSubmitted() && $form->isValid()) {
-
-    //         $image = $form->get('image')->getdata();
-
-    //         if ($image){
-    //             $originalName = pathinfo($image->getClientOriginalName(), PATHINFO_FILENAME);
-    //             $safeFileName = $slugger->slug($originalName);
-    //             $newFileName = $safeFileName.'-'.uniqid().'.'.$image->guessExtension();   
-            
-    //             try{
-    //                 $image->move(
-    //                     $this->getParameter(name:'image_dir'),
-    //                     $newFileName
-    //                 );
-    //             }catch (FileException $exception){}
-
-    //             $product->setImage($newFileName);
-    //         }
-
-    //         $entityManager->flush();
-
-    //         $this->addFlash(type: 'success', message:'Votre produit a été modifié');
-    //         return $this->redirectToRoute('app_product_index', [], Response::HTTP_SEE_OTHER);
-    //     }
-
-    //     return $this->render('product/edit.html.twig', [
-    //         'product' => $product,
-    //         'form' => $form,
-    //     ]);
+        return $this->json($product, context: ['groups' => 'product_simple']);
     }
 
     #[Route('/{id}', name: 'app_product_delete', methods: ['DELETE'])]
-    public function delete()
+    public function delete(Product $product)
     {
+        $this->entityManager->remove($product);
+        $this->entityManager->flush();
+
         return $this->json([]);
-
-    //     if ($this->isCsrfTokenValid('delete'.$product->getId(), $request->getPayload()->getString('_token'))) {
-    //         $entityManager->remove($product);
-    //         $this->addFlash(type: 'danger', message:'Votre produit a été supprimé');
-
-    //         $entityManager->flush();
-    //     }
-    //     return $this->redirectToRoute('app_product_index', [], Response::HTTP_SEE_OTHER);
     }
     #[Route('/add/product/{id}/stock', name: 'app_product_stock_add', methods: ['POST'])]
     public function addStock($id)

@@ -41,24 +41,29 @@ public function login(Request $request): JsonResponse
 
     // Chargez l'utilisateur par email
     $user = $this->userRepository->findOneBy(['email' => $email]);
-    $users = $this->userRepository->findBy([]);
+
+
+    
     // dd($users);
-
-
+    
+    
     // Vérifiez si l'utilisateur existe
     if (!$user) {
         return new JsonResponse(['error' => 'Invalid credentials'], 401);
     }
-
+    
     
     if (!$this->passwordHasher->isPasswordValid($user, $password)) {
         return new JsonResponse(['error' => 'Invalid credentials'], 401);
     }
-
-
+    
+    
     $token = $this->jwtManager->create($user);
-
-    return new JsonResponse(['token' => $token]);
+    
+    return new JsonResponse([
+        'token' => $token,
+        'roles' => $user->getRoles()
+    ]);
 }
     // #[Route(path: '/login', name: 'app_login')]
     // public function login(AuthenticationUtils $authenticationUtils): Response
