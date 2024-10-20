@@ -22,7 +22,6 @@ use Symfony\Component\HttpKernel\Attribute\MapRequestPayload;
 use Symfony\Component\Routing\Attribute\Route;
 use Symfony\Component\Security\Http\Attribute\IsGranted;
 use Symfony\Component\Serializer\SerializerInterface;
-use Symfony\Component\String\Slugger\SluggerInterface;
 
 
 #[Route('/api/products')]
@@ -135,6 +134,7 @@ class ProductController extends AbstractController
             'price' => $product->getPrice(),
             'description' => $product->getDescription(),
             'image' => $product->getImage(),
+            'stock' => $product->getStock()
         ];
     
         return new JsonResponse([
@@ -164,65 +164,6 @@ class ProductController extends AbstractController
     //     ]);
     // }
 
-    #[IsGranted('ROLE_ADMIN')]
-    #[Route('', name: 'app_product_new', methods: ['POST'])]
-    public function newProduct(
-        #[MapRequestPayload()] CreateProductDto $dto
-    )
-    {
-        $product = new Product();
-        $product->setName($dto->name);
-        $product->setDescription($dto->description);
-        $product->setPrice($dto->price);
-        $product->setImage($dto->image);
-        $product->setStock($dto->stock);
-
-        $this->entityManager->persist($product);
-        $this->entityManager->flush();
-
-        
-        return $this->json($product, status: Response::HTTP_CREATED, context: ['groups' => 'product_simple']);
-    }
-    //     $product = new Product();
-    //     $form = $this->createForm(ProductType::class, $product);
-    //     $form->handleRequest($request);
-
-    //     if ($form->isSubmitted() && $form->isValid()) {
-    //         $image = $form->get('image')->getdata();
-
-    //         if ($image){
-    //             $originalName = pathinfo($image->getClientOriginalName(), PATHINFO_FILENAME);
-    //             $safeFileName = $slugger->slug($originalName);
-    //             $newFileName = $safeFileName.'-'.uniqid().'.'.$image->guessExtension();   
-            
-    //             try{
-    //                 $image->move(
-    //                     $this->getParameter(name:'image_dir'),
-    //                     $newFileName
-    //                 );
-    //             }catch (FileException $exception){}
-
-    //             $product->setImage($newFileName);
-    //         }
-    //         $entityManager->persist($product);
-    //         $entityManager->flush();
-
-    //         $stockHistory = new AddProductHistory();
-    //         $stockHistory->setQte($product->getStock());
-    //         $stockHistory->setProduct($product);
-    //         $stockHistory->setCreatedAt(new \DateTimeImmutable());
-    //         $entityManager->persist($stockHistory);
-    //         $entityManager->flush();
-
-    //         $this->addFlash(type: 'success', message:'Votre produit a été ajouté');
-    //         return $this->redirectToRoute('app_product_index', [], Response::HTTP_SEE_OTHER);
-    //     }
-
-    //     return $this->render('product/new.html.twig', [
-    //         'product' => $product,
-    //         'form' => $form,
-    //     ]);
-    // }
 
     // #[Route('/{id}', name: 'app_product_show', methods: ['GET'])]
     // public function show(Product $product): Response
@@ -232,65 +173,6 @@ class ProductController extends AbstractController
     //     ]);
     // }
 
-    #[Route('/{id}', name: 'app_product_edit', methods: ['PUT'])]
-    public function edit(Product $product, #[MapRequestPayload()] CreateProductDto $dto): JsonResponse
-    {
-        $product->setName($dto->name);
-        $product->setDescription($dto->description);
-        $product->setPrice($dto->price);
-        $product->setImage($dto->image);
-        $product->setStock($dto->stock);
-
-        $this->entityManager->persist($product);
-        $this->entityManager->flush();
-
-        return $this->json($product, context: ['groups' => 'product_simple']);
-    }
-
-    #[Route('/{id}', name: 'app_product_delete', methods: ['DELETE'])]
-    public function delete(Product $product)
-    {
-        $this->entityManager->remove($product);
-        $this->entityManager->flush();
-
-        return $this->json([]);
-    }
-    #[Route('/add/product/{id}/stock', name: 'app_product_stock_add', methods: ['POST'])]
-    public function addStock($id)
-    {
-        return $this->json([]);
-
-    //     $addStock = new AddProductHistory();
-    //     $form = $this->createForm(AddProductHistoryType::class,$addStock);
-    //     $form->handleRequest($request);
-
-    //     $product = $productRepository->find($id);
-
-    //     if ($form->isSubmitted() && $form->isValid()){
-
-    //         if ($addStock->getQte()>0){
-    //             $newQte = $product->getStock() + $addStock->getQte();
-    //             $product->setStock($newQte);
-                
-    //             $addStock->setCreatedAt(new \DateTimeImmutable());
-    //             $addStock->setProduct($product);
-    //             $entityManager->persist($addStock);
-    //             $entityManager->flush();
-
-    //             $this->addFlash("success", message:"Le stock de votre produit a été modifié");
-    //             return $this->redirectToRoute('app_product_index');
-    //         } else {
-    //             $this->addFlash("danger","Le stock ne doit pas être inférieur à 1");
-    //             return $this->redirectToRoute("app_product_stock_add",['id'=>$product->getId()]);
-    //         }
-    //     }
-
-    //     return $this->render('product/addStock.html.twig',
-    //         ['form' => $form->createView(),
-    //         'product'=>$product
-    //         ]
-    //     );
-    }
     // #[Route('/add/product/{id}/stock/history', name: 'app_product_stock_add_history', methods: ['GET'])]
     // public function productAddHistory($id, ProductRepository $productRepository, AddProductHistoryRepository $addProductHistoryRepository):Response
     // {

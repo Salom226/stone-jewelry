@@ -4,10 +4,13 @@ security:
     algorithm: auto
 
   firewalls:
-    # login:
-    #   pattern: ^/api/login
-    #   stateless: true
-    #   # anonymous: true # Permet aux utilisateurs non authentifiés de se connecter
+    login:
+      pattern: ^/api/login
+      stateless: true
+
+    public_api:
+            pattern: ^/api/products
+            stateless: true
 
     api:
       pattern: ^/api/

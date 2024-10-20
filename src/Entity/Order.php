@@ -29,7 +29,7 @@ class Order
     private ?string $adress = null;
 
     #[ORM\ManyToOne(inversedBy: 'orders')]
-    #[ORM\JoinColumn(nullable: false)]
+    #[ORM\JoinColumn(nullable: true)]
     private ?City $city = null;
 
     #[ORM\Column]
