@@ -35,6 +35,7 @@ class ProductController extends AbstractController
             $request->query->getInt('page', 1),
             limit: $request->query->getInt('limit', 6)
         );
+        $productArray = [];
     
         foreach ($paginatedProducts as $product) {
             $productArray[] = [
