@@ -28,7 +28,7 @@ class UserController extends AbstractController
 
     #[IsGranted('ROLE_ADMIN')]
     #[Route('', name: 'api_users', methods: ['GET'])]
-    public function index(): JsonResponse
+    public function index(Request $request): JsonResponse
     {
         $users = $this->userRepository->findAll();
         $data = [];
@@ -67,7 +67,7 @@ class UserController extends AbstractController
         $user->setPassword(
             $this->userPasswordHasher->hashPassword(
                 $user,
-                $dto->password // Mot de passe envoyé depuis Vue.js
+                $dto->password
             )
         );
 

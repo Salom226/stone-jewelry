@@ -24,7 +24,6 @@ class Cart
             }
         }
 
-        // Calcule le total du panier
         $total = array_sum(array_map(function ($item) {
             return $item['product']->getPrice() * $item['quantity'];
         }, $cartWithData));
@@ -37,7 +36,6 @@ class Cart
     
     public function calculateShippingCost(City $city): float
     {
-        // Logique pour calculer les frais de livraison en fonction de la ville
         return $city->getShippingCost(); 
     }
 }
