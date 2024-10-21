@@ -67,7 +67,7 @@ class UserController extends AbstractController
         $user->setPassword(
             $this->userPasswordHasher->hashPassword(
                 $user,
-                $dto->password // Mot de passe envoyé depuis Vue.js
+                $dto->password
             )
         );
 

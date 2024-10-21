@@ -36,10 +36,8 @@ class SecurityController extends AbstractController
         $email = $data['username'];
         $password = $data['password'];
         
-        // Charge l'utilisateur par email
         $user = $this->userRepository->findOneBy(['email' => $email]);
         
-        // Vérifie si l'utilisateur existe
         if (!$user) {
             return new JsonResponse(['error' => 'Invalid credentials'], 401);
         }

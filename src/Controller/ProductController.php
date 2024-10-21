@@ -29,9 +29,7 @@ class ProductController extends AbstractController
     #[Route('', name: 'app_home', methods: ['GET'])]
     public function getAllProducts(Request $request, PaginatorInterface $paginator): JsonResponse
     {
-        // Fetch products sorted by ID in descending order
         $products = $this->productRepository->findBy([], ['id' => 'DESC']);
-        // Paginate the products, 6 per page
         $paginatedProducts = $paginator->paginate(
             $products,
             $request->query->getInt('page', 1),
@@ -50,7 +48,6 @@ class ProductController extends AbstractController
 
         return new JsonResponse([
             'products' => $this->serializer->normalize($productArray, 'json'),
-            // 'categories' => $categoryArray,
             'pagination' => [
                 'current_page' => $request->query->getInt('page', 1),
                 'total_items' => $paginatedProducts->getTotalItemCount(),
@@ -87,7 +84,6 @@ class ProductController extends AbstractController
     public function getProductDetail(Product $product, ProductRepository $productRepository, CategoryRepository $categoryRepository): JsonResponse
     {
         
-        // Récupérer les 5 derniers produits
         $lastProducts = $productRepository->findBy([], ['id' => 'DESC'], limit: 5);
     
         $lastProductsArray = [];
@@ -117,7 +113,6 @@ class ProductController extends AbstractController
         ]);
     }
     
-    // Helper function pour transformer les catégories en tableau
     private function categoriesToArray($categories) {
         $categoryArray = [];
         foreach ($categories as $category) {
