@@ -2,27 +2,15 @@
 
 namespace App\Controller;
 
-use App\Entity\City;
 use App\Entity\Order;
 use App\Entity\OrderProducts;
 use App\Entity\Product;
-use App\Form\OrderType;
-use App\Repository\OrderRepository;
-use App\Repository\ProductRepository;
-use App\Service\Cart;
-use App\Service\StripePayment;
-use DateTime;
 use DateTimeImmutable;
-use Doctrine\ORM\EntityManager;
 use Doctrine\ORM\EntityManagerInterface;
-use Knp\Component\Pager\PaginatorInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
-use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
-use Symfony\Component\HttpFoundation\Session\SessionInterface;
 use Symfony\Component\Mailer\MailerInterface;
-use Symfony\Component\Mime\Email;
 use Symfony\Component\Routing\Attribute\Route;
 
 #[Route('/api/orders')]
@@ -53,7 +41,6 @@ class OrderController extends AbstractController
 
         $products = $this->entityManager->getRepository(Product::class)->findBy(['id'=>$productIds]);
         
-        
         $totalPrice = 0;
         foreach ($products as $product){
             $quantity = $data['cart'][$product->getId()];
@@ -74,92 +61,7 @@ class OrderController extends AbstractController
         $this->entityManager->flush();
 
         return $this->json($order, Response::HTTP_CREATED);
-
-        // Récupérer le contenu JSON de la requête (IDs de produits)
-        // $data = json_decode($request->getContent(), true);
-        // $productIds = $data['productIds'] ?? [];
-
-        // if (empty($productIds)) {
-        //     return new JsonResponse(['message' => 'Le panier est vide.'], 400);
-        // }
-
-        // // Récupérer les produits depuis la base de données par leurs IDs
-        // $products = $productRepository->findBy(['id' => $productIds]);
-
-        // if (!$products) {
-        //     return new JsonResponse(['message' => 'Aucun produit trouvé.'], 404);
-        // }
-
-        // // Construire la réponse avec les détails des produits
-        // $cartDetails = [];
-        // foreach ($products as $product) {
-        //     $cartDetails[] = [
-        //         'id' => $product->getId(),
-        //         'name' => $product->getName(),
-        //         'price' => $product->getPrice(),
-        //         'image' => $product->getImage(),
-        //         // Ajoute d'autres détails si nécessaire (description, etc.)
-        //     ];
-        // }
-
-        // return new JsonResponse($cartDetails, 200);
     }
-    
-    
-    // #[Route('/order', name: 'app_order')]
-    // public function index(Request $request, SessionInterface $session, EntityManagerInterface $entityManager, ProductRepository $productRepository, Cart $cart, OrderRepository $orderRepository): Response
-    // {
-    //     $data = $cart->getCart($session);
-
-    //     $order = new Order();
-    //     $form = $this->createForm(OrderType::class, $order);
-    //     $form->handleRequest($request);
-
-    //     if ($form->isSubmitted() && $form->isValid()){
-    //         if(!empty($data['total'])){
-                    
-    //             $order->setTotalPrice($data['total']);
-    //             $order->setCreatedAt(new \DateTimeImmutable());
-    //             $entityManager->persist($order);
-    //             $entityManager->flush();
-
-    //             foreach ($data['cart'] as $value){
-    //                 $orderProduct = new OrderProducts();
-    //                 $orderProduct->setOrder($order);
-    //                 $orderProduct->setProduct($value['product']);
-    //                 $orderProduct->setQte($value['quantity']);
-    //                 $entityManager->persist($orderProduct);
-    //                 $entityManager->flush();
-    //             }
-    //         }
-    //         $session->set('cart',[]);
-        
-    //     $payment = new StripePayment();
-
-    //     $shippingCost = $order->getCity()->getShippingCost();
-    //     $payment->startPayment($data,$shippingCost);
-    //     $stripeRedirectUrl = $payment->getStripeRedirectUrl();
-    //     return $this->redirect($stripeRedirectUrl);
-
-    //     $html = $this->renderView('mail/orderConfirm.html.twig',[
-    //         'order'=>$order
-    //     ]);
-    //     $email = (new Email())
-    //     ->from('StoneJewelry@gmail.com')
-    //     ->to($order->getEmail())
-    //     ->subject('Confirmation de réception de la commande')
-    //     ->html($html);
-
-    //     $this->mailer->send($email);
-    //     return $this->redirectToRoute('order_ok_message');
-    //     }
-
-    //     return $this->render('order/index.html.twig', [
-    //         'form'=>$form->createView(),
-    //         'total'=>$data['total']
-    //     ]);
-    // }
-
 
     #[Route('/api/orders/{id}', name: 'api_orders_delete', methods: ['DELETE'])]
     public function deleteOrder()

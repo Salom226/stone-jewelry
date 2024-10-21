@@ -9,8 +9,12 @@ security:
       stateless: true
 
     public_api:
-            pattern: ^/api/products
-            stateless: true
+      pattern: ^/api/products
+      stateless: true
+
+    orders_api:
+      pattern: ^/api/orders
+      stateless: true
 
     api:
       pattern: ^/api/
@@ -25,6 +29,7 @@ security:
         property: email
 
   access_control:
-    - { path: ^/api/login, roles: PUBLIC_ACCESS } # Autoriser l'accès à l'authentification sans token
-    - { path: ^/api/products, roles: PUBLIC_ACCESS } # Autoriser l'accès à l'authentification sans token
+    - { path: ^/api/login, roles: PUBLIC_ACCESS } # Autoriser l'accès sans token
+    - { path: ^/api/products, roles: PUBLIC_ACCESS } # Autoriser l'accès sans token
+    - { path: ^/api/orders, roles: PUBLIC_ACCESS } # Autoriser l'accès sans token
     - { path: ^/api/, roles: IS_AUTHENTICATED_FULLY } # Toutes les autres routes API nécessitent un JWT valide
