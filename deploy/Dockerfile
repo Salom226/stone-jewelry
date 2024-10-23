@@ -17,15 +17,16 @@ WORKDIR /var/www/html
 
 COPY . .
 
-RUN composer install
-
-RUN chown -R www-data:www-data var
-
 # Add site configuration for Apache
 COPY deploy/000-default.conf /etc/apache2/sites-available/000-default.conf
 RUN a2ensite 000-default.conf
 RUN sed -i 's/\/var\/www\/html/\/var\/www\/html\/public/g' /etc/apache2/apache2.conf
 
+# Copy the postinstall.sh script
+COPY deploy/postinstall.sh /usr/local/bin/postinstall.sh
+RUN chmod +x /usr/local/bin/postinstall.sh
+
 EXPOSE 80
 
-CMD ["apache2-foreground"]
+# Run the postinstall.sh script and then start Apache
+CMD ["/bin/bash", "-c", "/usr/local/bin/postinstall.sh && apache2-foreground"]
