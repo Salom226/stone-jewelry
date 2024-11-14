@@ -29,6 +29,10 @@ class Product
     #[Groups(['product_simple'])]
     private ?float $price = null;
 
+    #[ORM\ManyToOne(targetEntity: Category::class, inversedBy: "products")]
+    #[ORM\JoinColumn(nullable: false)]
+    private ?Category $category = null;
+
     /**
      * @var Collection<int, subCategory>
      */
@@ -101,6 +105,18 @@ class Product
 
         return $this;
     }
+    public function getCategory(): ?Category
+    {
+        return $this->category;
+    }
+
+    public function setCategory(?Category $category): self
+    {
+        $this->category = $category;
+
+        return $this;
+    }
+
 
     /**
      * @return Collection<int, subCategory>

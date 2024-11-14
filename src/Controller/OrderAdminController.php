@@ -37,7 +37,7 @@ class OrderAdminController extends AbstractController
                 'phone' => $order->getPhone(),
                 'address' => $order->getAdress(),
                 'totalPrice' => $order->getTotalPrice(),
-                'createdAt' => $order->getCreatedAt()->format('d-m-Y H:i:s'),
+                'createdAt' => $order->getCreatedAt()->format('m-d-Y H:i:s'),
                 'firstName' => $order->getFirstName(),
                 'lastName' => $order->getLastName(),
                 'completed' => $order->isCompleted()

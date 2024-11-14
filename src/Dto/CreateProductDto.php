@@ -20,4 +20,8 @@ class CreateProductDto
 
     #[Assert\PositiveOrZero]
     public ?int $stock = 0;
+
+    #[Assert\NotBlank]
+    public ?int $categoryId = null;
+
 }
