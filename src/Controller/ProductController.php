@@ -10,6 +10,7 @@ use Knp\Component\Pager\PaginatorInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
+use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Attribute\Route;
 use Symfony\Component\Serializer\SerializerInterface;
 
@@ -44,11 +45,15 @@ class ProductController extends AbstractController
                 'name' => $product->getName(),
                 'price' => $product->getPrice(),
                 'description' => $product->getDescription(),
+                'category' => [
+                'id' => $product->getCategory()->getId(),
+                'name' => $product->getCategory()->getName()
+            ]
             ];
         }
 
         return new JsonResponse([
-            'products' => $this->serializer->normalize($productArray, 'json'),
+            'products' => $this->serializer->normalize($productArray, 'json', ['groups' => 'product_list']),
             'pagination' => [
                 'current_page' => $request->query->getInt('page', 1),
                 'total_items' => $paginatedProducts->getTotalItemCount(),
@@ -58,6 +63,31 @@ class ProductController extends AbstractController
         ]);
     }
 
+    #[Route('/category/{id}', name: 'app_category_products', methods: ['GET'])]
+    public function getProductsByCategory(int $id): JsonResponse
+    {
+        $category = $this->categoryRepository->find($id);
+    
+        if (!$category) {
+            return new JsonResponse(['error' => 'Catégorie non trouvée'], Response::HTTP_NOT_FOUND);
+        }
+    
+        $products = $this->productRepository->findBy(['category' => $category]);
+    
+        if (empty($products)) {
+            return new JsonResponse(['message' => 'Aucun produit trouvé dans cette catégorie'], Response::HTTP_OK);
+        }
+    
+        return new JsonResponse([
+            'category' => $category->getName(),
+            'products' => array_map(fn($p) => [
+                'id' => $p->getId(),
+                'name' => $p->getName(),
+                'image' => $p->getImage(),
+                'price' => $p->getPrice(),
+            ], $products),
+        ], Response::HTTP_OK);
+    }
 
     #[Route('/filtered', name: 'app_product_filtered', methods: ['GET'])]
     public function getFilteredProducts(Request $request, ProductRepository $productRepository)
@@ -78,6 +108,20 @@ class ProductController extends AbstractController
     {
         $separator = ',';
         return explode($separator, $ids);
+    }
+
+    #[Route('/search', name: 'search_productss', methods:['GET'])]
+    public function searchProducts(Request $request): Response
+    {
+        $searchQuery = $request->query->get('q', '');
+        $products = $this->productRepository->findBySearchQuery($searchQuery);
+
+        return $this->json(
+            $products,
+            Response::HTTP_OK,
+            [],
+            ['groups' => ['product_simple', 'category_list']] // Sérialisation avec groupes définis
+        );
     }
 
 
@@ -124,4 +168,6 @@ class ProductController extends AbstractController
         }
         return $categoryArray;
     }
+
+  
 }

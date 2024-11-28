@@ -13,7 +13,7 @@ use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\Routing\Attribute\Route;
 use Symfony\Component\Security\Http\Attribute\IsGranted;
 
-#[Route('/api/categories')]
+#[Route('/api/admin/categories')]
 class CategoriesController extends AbstractController
 {
     public function __construct(
@@ -22,13 +22,17 @@ class CategoriesController extends AbstractController
     )
     {}
     
-    
+    // #[IsGranted('ROLE_ADMIN')]
     #[Route('/', name: 'app_categories', methods:['GET'])]
     public function getCategories(CategoryRepository $categoryRepository)
     {
         $categories = $categoryRepository->findAll();
         
-        return $this->json($categories);
+        return $this->json(
+            $categories,
+            status: Response::HTTP_OK,
+            context: ['groups' => ['category_list']]
+        );
     }
 
 
@@ -60,7 +64,9 @@ class CategoriesController extends AbstractController
         }
         $category->setName($payload['name']);
         $this->em->flush(); 
-        return $this->json($category, Response::HTTP_OK);
+        return $this->json($category, Response::HTTP_OK,
+        context: ['groups' => ['category_list']]);
+        
     }
     
     #[Route('/{id}', name: 'app_category_delete', methods:['DELETE'])]
@@ -69,6 +75,27 @@ class CategoriesController extends AbstractController
         $this->em->remove($category);
         $this->em->flush();
         return $this->json(null, Response::HTTP_NO_CONTENT);
+    }
+}
+
+#[Route('/api/categories')]
+class PublicCategoriesController extends AbstractController
+{
+    public function __construct(
+        private readonly CategoryRepository $categoryRepository
+    )
+    {}
+
+    #[Route('/', name: 'app_public_categories', methods:['GET'])]
+    public function getCategories()
+    {
+        $categories = $this->categoryRepository->findAll();
+
+        return $this->json(
+            $categories,
+            status: Response::HTTP_OK,
+            context: ['groups' => ['category_list']]
+        );
     }
 }
 

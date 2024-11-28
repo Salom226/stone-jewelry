@@ -16,6 +16,10 @@ security:
       pattern: ^/api/orders
       stateless: true
 
+    category_api:
+      pattern: ^/api/categories
+      stateless: true
+
     api:
       pattern: ^/api/
       stateless: true # Les requêtes API sont sans état (pas de session)
@@ -30,6 +34,7 @@ security:
 
   access_control:
     - { path: ^/api/login, roles: PUBLIC_ACCESS } # Autoriser l'accès sans token
-    - { path: ^/api/products, roles: PUBLIC_ACCESS } # Autoriser l'accès sans token
-    - { path: ^/api/orders, roles: PUBLIC_ACCESS } # Autoriser l'accès sans token
+    - { path: ^/api/products, roles: PUBLIC_ACCESS }
+    - { path: ^/api/orders, roles: PUBLIC_ACCESS }
+    - { path: ^/api/categories, roles: PUBLIC_ACCESS }
     - { path: ^/api/, roles: IS_AUTHENTICATED_FULLY } # Toutes les autres routes API nécessitent un JWT valide

@@ -89,8 +89,11 @@ class ProductAdminController extends AbstractController
 
     #[IsGranted('ROLE_ADMIN')]
     #[Route('/{id}', name: 'app_product_edit', methods: ['PUT'])]
-    public function edit(Product $product, #[MapRequestPayload()] CreateProductDto $dto): JsonResponse
+    public function edit(Product $product, #[MapRequestPayload()] CreateProductDto $dto, CategoryRepository $categoryRepository): JsonResponse
     {
+        $category = $categoryRepository->find($dto->categoryId);
+
+        $product->setCategory($category);
         $product->setName($dto->name);
         $product->setDescription($dto->description);
         $product->setPrice($dto->price);

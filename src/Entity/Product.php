@@ -8,6 +8,7 @@ use Doctrine\Common\Collections\Collection;
 use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
 use Symfony\Component\Serializer\Attribute\Groups;
+use Symfony\Component\Serializer\Annotation\MaxDepth;
 
 #[ORM\Entity(repositoryClass: ProductRepository::class)]
 class Product
@@ -15,35 +16,40 @@ class Product
     #[ORM\Id]
     #[ORM\GeneratedValue]
     #[ORM\Column]
-    #[Groups(['product_simple'])]
+    #[Groups(['product_simple', 'product_detail'])]
+    #[MaxDepth(1)] 
     private ?int $id = null;
 
     #[ORM\Column(length: 255, unique:true)]
-    #[Groups(['product_simple'])]
+    #[Groups(['product_simple', 'product_detail'])]
     private ?string $name = null;
 
     #[ORM\Column(type: Types::TEXT, nullable: true)]
+    #[Groups(['product_detail'])] 
     private ?string $description = null;
 
     #[ORM\Column]
-    #[Groups(['product_simple'])]
+    #[Groups(['product_simple', 'product_detail'])]
     private ?float $price = null;
 
     #[ORM\ManyToOne(targetEntity: Category::class, inversedBy: "products")]
     #[ORM\JoinColumn(nullable: false)]
+    #[Groups(['product_detail'])]
     private ?Category $category = null;
 
     /**
      * @var Collection<int, subCategory>
      */
-    #[ORM\ManyToMany(targetEntity: SubCategory::class, inversedBy: 'products')]
-    private Collection $subCategories;
+     #[ORM\ManyToMany(targetEntity: SubCategory::class, inversedBy: 'products')]
+     #[Groups(['product_detail'])]
+     private Collection $subCategories;
 
     #[ORM\Column(length: 255, nullable: true)]
-    #[Groups(['product_simple'])]
+    #[Groups(['product_simple', 'product_detail'])]
     private ?string $image = null;
 
     #[ORM\Column]
+    #[Groups(['product_detail'])]
     private ?int $stock = null;
 
     /**

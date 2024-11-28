@@ -7,6 +7,8 @@ use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
 use Doctrine\ORM\Mapping as ORM;
 use Symfony\Component\Serializer\Attribute\Groups;
+use Symfony\Component\Serializer\Annotation\MaxDepth;
+
 
 #[ORM\Entity(repositoryClass: CategoryRepository::class)]
 class Category
@@ -14,10 +16,12 @@ class Category
     #[ORM\Id]
     #[ORM\GeneratedValue]
     #[ORM\Column]
-    #[Groups(['product_simple'])]
+    #[Groups(['category_list', 'product_simple'])]
+    #[MaxDepth(1)]
     private ?int $id = null;
 
     #[ORM\Column(length: 255,unique: true)]
+    #[Groups(['category_list', 'product_simple'])]
     private ?string $name = null;
 
     #[ORM\OneToMany(mappedBy: "category", targetEntity: Product::class)]
@@ -27,6 +31,13 @@ class Category
     {
         $this->products = new ArrayCollection();
     }
+
+    #[Groups(['category_list'])]
+    public function getProductNames(): array
+    {
+        return $this->products->map(fn(Product $product) => $product->getName())->toArray();
+    }
+
 
     // /**
     //  * @var Collection<int, SubCategory>
