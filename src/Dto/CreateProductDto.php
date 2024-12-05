@@ -15,8 +15,11 @@ class CreateProductDto
     #[Assert\PositiveOrZero]
     public float $price;
 
-    #[Assert\Length(max: 255)]
-    public ?string $image = null;
+    #[Assert\All([
+        new Assert\Url(message: 'Each image must be a valid URL.')
+    ])]
+    #[Assert\NotBlank(message: 'Images should not be empty.')]
+    public ?array $images = [];
 
     #[Assert\PositiveOrZero]
     public ?int $stock = 0;

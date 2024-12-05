@@ -39,28 +39,35 @@ class ProductAdminController extends AbstractController
     {
     }
     #[IsGranted('ROLE_ADMIN')]
-    #[Route('/upload', name: 'app_product_image_upload', methods: ['POST'])]
-    public function uploadImage(Request $request, SluggerInterface $slugger): JsonResponse
-    {
-    $file = $request->files->get('image');
-    
-    if (!$file instanceof UploadedFile) {
-        return new JsonResponse(['error' => 'No file uploaded'], Response::HTTP_BAD_REQUEST);
+    #[Route('/upload-multiple', name: 'app_product_images_upload', methods: ['POST'])]
+public function uploadMultipleImages(Request $request, SluggerInterface $slugger): JsonResponse
+{
+    $files = $request->files->get('images');
+    if (!is_array($files) || empty($files)) {
+        return new JsonResponse(['error' => 'No files uploaded'], Response::HTTP_BAD_REQUEST);
     }
 
     $uploadsDirectory = $this->getParameter('image_dir');
-    $originalFilename = pathinfo($file->getClientOriginalName(), PATHINFO_FILENAME);
-    $safeFilename = $slugger->slug($originalFilename);
-    $newFilename = $safeFilename . '-' . uniqid() . '.' . $file->guessExtension();
+    $imageUrls = [];
 
-    try {
-        $file->move($uploadsDirectory, $newFilename);
-    } catch (FileException $e) {
-        return new JsonResponse(['error' => 'Failed to upload file'], Response::HTTP_INTERNAL_SERVER_ERROR);
+    foreach ($files as $file) {
+        if (!$file instanceof UploadedFile) {
+            continue;
+        }
+
+        $originalFilename = pathinfo($file->getClientOriginalName(), PATHINFO_FILENAME);
+        $safeFilename = $slugger->slug($originalFilename);
+        $newFilename = $safeFilename . '-' . uniqid() . '.' . $file->guessExtension();
+
+        try {
+            $file->move($uploadsDirectory, $newFilename);
+            $imageUrls[] = $request->getSchemeAndHttpHost() . '/uploads/images/' . $newFilename;
+        } catch (FileException $e) {
+            return new JsonResponse(['error' => 'Failed to upload one or more files'], Response::HTTP_INTERNAL_SERVER_ERROR);
+        }
     }
 
-    $imageUrl = $request->getSchemeAndHttpHost() . '/uploads/images/' . $newFilename;
-    return new JsonResponse(['imageUrl' => $imageUrl], Response::HTTP_CREATED);
+    return new JsonResponse(['imageUrls' => $imageUrls], Response::HTTP_CREATED);
 }
     #[IsGranted('ROLE_ADMIN')]
     #[Route('', name: 'app_product_new', methods: ['POST'])]
@@ -78,7 +85,13 @@ class ProductAdminController extends AbstractController
         $product->setName($dto->name);
         $product->setDescription($dto->description);
         $product->setPrice($dto->price);
-        $product->setImage($dto->image);
+       
+        if (is_array($dto->images)) {
+            $product->setImages($dto->images);
+        } else {
+            return $this->json(['error' => 'Invalid images format'], Response::HTTP_BAD_REQUEST);
+        }
+
         $product->setStock($dto->stock);
 
         $this->entityManager->persist($product);
@@ -93,36 +106,49 @@ class ProductAdminController extends AbstractController
     {
         $category = $categoryRepository->find($dto->categoryId);
 
+        $existingImages = $product->getImages();
+
+        $imagesToDelete = array_diff($existingImages, $dto->images);
+    
+        foreach ($imagesToDelete as $imageFilename) {
+            $imagePath = $this->getParameter('image_dir') . '/' . basename($imageFilename);
+            if (file_exists($imagePath)) {
+                unlink($imagePath);
+            }
+        }
+    
         $product->setCategory($category);
         $product->setName($dto->name);
         $product->setDescription($dto->description);
         $product->setPrice($dto->price);
-        $product->setImage($dto->image);
+        $product->setImages($dto->images); 
         $product->setStock($dto->stock);
-
+    
         $this->entityManager->persist($product);
         $this->entityManager->flush();
-
+    
         return $this->json($product, context: ['groups' => 'product_simple']);
     }
 
     #[IsGranted('ROLE_ADMIN')]
     #[Route('/{id}', name: 'app_product_delete', methods: ['DELETE'])]
-    public function delete(Product $product)
+    public function delete(Product $product): JsonResponse
     {
-        $imageFilename = $product->getImage();
+        $imageFilenames = $product->getImages();
 
-        if ($imageFilename) {
-            $imagePath = $this->getParameter('image_dir') . '/' . basename($imageFilename);
-            
-            if (file_exists($imagePath)) {
-                unlink($imagePath);
+        if ($imageFilenames) {
+            foreach ($imageFilenames as $imageFilename) { 
+                $imagePath = $this->getParameter('image_dir') . '/' . basename($imageFilename);
+                
+                if (file_exists($imagePath)) {
+                    unlink($imagePath);
+                }
             }
         }
 
         $this->entityManager->remove($product);
         $this->entityManager->flush();
 
-        return $this->json(['message' => 'Produit et image supprimés avec succès']);
+        return $this->json(['message' => 'Produit et images supprimés avec succès']);
     }
 }

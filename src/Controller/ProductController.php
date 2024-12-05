@@ -40,7 +40,7 @@ class ProductController extends AbstractController
     
         foreach ($paginatedProducts as $product) {
             $productArray[] = [
-                'image' => $product->getImage(),
+                'images' => $product->getImages(),
                 'id' => $product->getId(),
                 'name' => $product->getName(),
                 'price' => $product->getPrice(),
@@ -83,7 +83,7 @@ class ProductController extends AbstractController
             'products' => array_map(fn($p) => [
                 'id' => $p->getId(),
                 'name' => $p->getName(),
-                'image' => $p->getImage(),
+                'images' => $p->getImages(),
                 'price' => $p->getPrice(),
             ], $products),
         ], Response::HTTP_OK);
@@ -110,7 +110,7 @@ class ProductController extends AbstractController
         return explode($separator, $ids);
     }
 
-    #[Route('/search', name: 'search_productss', methods:['GET'])]
+    #[Route('/search', name: 'search_products', methods:['GET'])]
     public function searchProducts(Request $request): Response
     {
         $searchQuery = $request->query->get('q', '');
@@ -120,7 +120,7 @@ class ProductController extends AbstractController
             $products,
             Response::HTTP_OK,
             [],
-            ['groups' => ['product_simple', 'category_list']] // Sérialisation avec groupes définis
+            ['groups' => ['product_simple', 'category_list']] 
         );
     }
 
@@ -138,7 +138,7 @@ class ProductController extends AbstractController
                 'name' => $lastProduct->getName(),
                 'price' => $lastProduct->getPrice(),
                 'description' => $lastProduct->getDescription(),
-                'image' => $lastProduct->getImage(),
+                'images' => $lastProduct->getImages(),
             ];
         }
     
@@ -147,7 +147,7 @@ class ProductController extends AbstractController
             'name' => $product->getName(),
             'price' => $product->getPrice(),
             'description' => $product->getDescription(),
-            'image' => $product->getImage(),
+            'images' => $product->getImages(),
             'stock' => $product->getStock()
         ];
     

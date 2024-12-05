@@ -44,9 +44,9 @@ class Product
      #[Groups(['product_detail'])]
      private Collection $subCategories;
 
-    #[ORM\Column(length: 255, nullable: true)]
-    #[Groups(['product_simple', 'product_detail'])]
-    private ?string $image = null;
+     #[ORM\Column(type: "array", nullable: true)]
+     #[Groups(['product_simple', 'product_detail'])]
+     private ?array $images = [];
 
     #[ORM\Column]
     #[Groups(['product_detail'])]
@@ -148,14 +148,14 @@ class Product
         return $this;
     }
 
-    public function getImage(): ?string
+    public function getImages(): ?array
     {
-        return $this->image;
+        return $this->images;
     }
 
-    public function setImage(?string $image): static
+    public function setImages(?array $images): self
     {
-        $this->image = $image;
+        $this->images = $images;
 
         return $this;
     }
