@@ -148,7 +148,11 @@ class ProductController extends AbstractController
             'price' => $product->getPrice(),
             'description' => $product->getDescription(),
             'images' => $product->getImages(),
-            'stock' => $product->getStock()
+            'stock' => $product->getStock(),
+            'category' => [
+                'id' => $product->getCategory()->getId(),
+                'name' => $product->getCategory()->getName()
+            ]
         ];
     
         return new JsonResponse([
