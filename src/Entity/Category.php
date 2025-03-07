@@ -83,7 +83,7 @@ class Category
     {
         if (!$this->products->contains($product)) {
             $this->products->add($product);
-            $product->setCategory($this); // Assure que le produit connaît sa catégorie
+            $product->setCategory($this);
         }
         return $this;
     }
@@ -91,41 +91,10 @@ class Category
     public function removeProduct(Product $product): static
     {
         if ($this->products->removeElement($product)) {
-            // Détache la catégorie côté produit si nécessaire
             if ($product->getCategory() === $this) {
                 $product->setCategory(null);
             }
         }
         return $this;
     }
-
-    // /**
-    //  * @return Collection<int, SubCategory>
-    //  */
-    // public function getSubCategories(): Collection
-    // {
-    //     return $this->subCategories;
-    // }
-
-    // public function addSubCategory(SubCategory $subCategory): static
-    // {
-    //     if (!$this->subCategories->contains($subCategory)) {
-    //         $this->subCategories->add($subCategory);
-    //         $subCategory->setCategory($this);
-    //     }
-
-    //     return $this;
-    // }
-
-    // public function removeSubCategory(SubCategory $subCategory): static
-    // {
-    //     if ($this->subCategories->removeElement($subCategory)) {
-    //         // set the owning side to null (unless already changed)
-    //         if ($subCategory->getCategory() === $this) {
-    //             $subCategory->setCategory(null);
-    //         }
-    //     }
-
-    //     return $this;
-    // }
 }

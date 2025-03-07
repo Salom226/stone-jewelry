@@ -23,7 +23,6 @@ class StripeController extends AbstractController
     // // {
     //     $data = json_decode($request->getContent(), true);
 
-    //     // Vous passez ici le panier et les frais de livraison au service Stripe
     //     $this->stripePayment->startPayment($data['cart'], $data['shippingCost']);
 
     //     return new JsonResponse([

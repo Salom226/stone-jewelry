@@ -193,7 +193,6 @@ class Product
     public function removeAddProductHistory(AddProductHistory $addProductHistory): static
     {
         if ($this->addProductHistories->removeElement($addProductHistory)) {
-            // set the owning side to null (unless already changed)
             if ($addProductHistory->getProduct() === $this) {
                 $addProductHistory->setProduct(null);
             }
@@ -223,7 +222,6 @@ class Product
     public function removeOrderProduct(OrderProducts $orderProduct): static
     {
         if ($this->orderProducts->removeElement($orderProduct)) {
-            // set the owning side to null (unless already changed)
             if ($orderProduct->getProduct() === $this) {
                 $orderProduct->setProduct(null);
             }

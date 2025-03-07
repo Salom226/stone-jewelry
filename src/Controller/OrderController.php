@@ -34,8 +34,6 @@ class OrderController extends AbstractController
         $order->setPhone($data['phone']);
         $order->setAdress($data['address']);
         $order->setCreatedAt(new DateTimeImmutable());
-        // TODO: set city
-        // $order->setCity($data['city']);
 
         $productIds = array_keys($data['cart']);
 
@@ -67,52 +65,5 @@ class OrderController extends AbstractController
     public function deleteOrder()
     {
         return $this->json([]);
-
-    //     $entityManager->remove($order);
-    //     $entityManager->flush();
-
-    //     return new JsonResponse(['status' => 'Order deleted successfully.']);
     }
-    // #[Route('/editor/order/{id}/isCompleted/update', name: 'app_orders_is_completed_update')]
-    // public function isCompletedUpdate($id, OrderRepository $orderRepository, EntityManagerInterface $entityManager):Response
-    // {
-
-    //     $order = $orderRepository->find($id);
-    //     if (!$order) {
-    //         // Add a flash message to notify the user about the missing order
-    //         $this->addFlash('error', 'Order not found.');
-    
-    //         // Redirect back to the order list (or any other appropriate route)
-    //         return $this->redirectToRoute('app_orders_show');
-    //     }
-    
-    //     $order->setCompleted(true);
-    //     $entityManager->flush();
-    //     $this->addFlash('success','modification effectuée');
-    //     return $this->redirectToRoute('app_orders_show');
-    // }
-
-    // #[Route('/editor/order/{id}/isCompleted/remove', name: 'app_orders_remove')]
-    // public function removeOrder(Order $order, EntityManagerInterface $entityManager):Response
-    // {
-    //     $entityManager->remove($order);
-    //     $entityManager->flush();
-    //     $this->addFlash('danger', 'Votre commande a été supprimée');
-    //     return $this->redirectToRoute('app_orders_show');    
-    // }
-
-    // #[Route("order-ok-message", name: 'order_ok_message')]
-    // public function orderMessage():Response{
-    //     return $this->render('order/order_message.html.twig');
-    // }
-
-    // #[Route('/city/{id}/shipping/cost', name: 'app_city_shipping_cost')]
-    // public function cityShippingCost()
-    // {
-        // $this->json([]);
-
-    //     $cityShippingPrice = $city->getShippingCost();
-
-    //     return new Response(json_encode(['status'=>200, "message"=>'on', 'content'=>$cityShippingPrice]));
-    // }
 } 

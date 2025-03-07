@@ -3,12 +3,7 @@
 namespace App\Controller;
 
 use App\Dto\CreateProductDto;
-use App\Entity\AddProductHistory;
 use App\Entity\Product;
-use App\Form\AddProductHistoryType;
-use App\Form\ProductType;
-use App\Form\ProductUpdateType;
-use App\Repository\AddProductHistoryRepository;
 use App\Repository\CategoryRepository;
 use App\Repository\ProductRepository;
 use Doctrine\ORM\EntityManagerInterface;

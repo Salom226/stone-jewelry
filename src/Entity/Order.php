@@ -153,7 +153,6 @@ class Order
     public function removeOrderProduct(OrderProducts $orderProduct): static
     {
         if ($this->orderProducts->removeElement($orderProduct)) {
-            // set the owning side to null (unless already changed)
             if ($orderProduct->getOrder() === $this) {
                 $orderProduct->setOrder(null);
             }
