@@ -56,8 +56,8 @@ public function uploadMultipleImages(Request $request, SluggerInterface $slugger
 
         try {
             $file->move($uploadsDirectory, $newFilename);
-            $imageUrls[] = $request->getSchemeAndHttpHost() . '/uploads/images/' . $newFilename;
-        } catch (FileException $e) {
+            $imageBaseUrl = getenv('VITE_API_UPLOAD_URL') ?: 'https://api-stone-jewelry.menros.fr/uploads';
+            $imageUrls[] = rtrim($imageBaseUrl, '/') . '/' . $newFilename;        } catch (FileException $e) {
             return new JsonResponse(['error' => 'Failed to upload one or more files'], Response::HTTP_INTERNAL_SERVER_ERROR);
         }
     }
